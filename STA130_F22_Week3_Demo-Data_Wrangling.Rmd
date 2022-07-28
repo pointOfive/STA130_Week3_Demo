@@ -1,0 +1,129 @@
+---
+title: "STA130 R Data Wrangling and Summarizing Demo"
+author: "Scott Schwartz"
+date: "Fall 2022 Week 3"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=TRUE, include=TRUE, echo=TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+# install.packages("insuranceData")
+library(insuranceData) 
+data(AutoClaims)
+glimpse(AutoClaims)
+```
+
+### Are these data tidy?
+
+```{r}
+AutoClaims %>% summary()
+```
+
+### How many `factor` levels do the `STATE` and `CLASS` have?
+
+```{r}
+# complete this
+AutoClaims %>% group_by() %>% summarize() #%>% arrange()
+
+#levels(AutoClaims$STATE)
+#length(levels(AutoClaims$STATE))
+#nlevels(AutoClaims$STATE)
+#levels(AutoClaims$CLASS)
+#length(levels(AutoClaims$CLASS))
+#nlevels(AutoClaims$CLASS)
+```
+
+### Is the `summary()` output above confirmed using `dplyr` functions?
+
+```{r}
+# Complete this
+AutoClaims %>% select() %>% filter() %>% 
+  group_by() %>% 
+  summarise(n=n(PAID), 
+            mean=(PAID), median=(PAID), sd=(PAID), min=(PAID), max=(PAID),
+            "25%th percentile"=(PAID), "75%th percentile"=(PAID))
+```
+
+### Is this data skewed? If so, is it right or left skewed?
+
+```{r}
+# Fix this
+AutoClaims %>% ggplot("PAID") %>% geom_histogram()
+```
+
+### What's this code doing?
+
+```{r}
+AutoClaims %>% group_by(GENDER) %>% 
+  summarise(n=n(), x0=sum(PAID>5000), x1=sum(PAID>5000)/n, x2=mean(PAID>5000), 
+            x3=median(PAID>5000)) 
+```
+
+# Which of the following chunks of R code produces the most useful output for comparing the proportion of high insurance claims (over $10,000) for men and women?
+
+```{r, fig.height=5, eval=FALSE}
+# A
+AutoClaims %>% ggplot(aes(x=PAID)) + 
+  facet_wrap(~GENDER) + geom_histogram(bins=30, fill="gray", color="black")
+
+# B
+AutoClaims %>% ggplot(aes(x=GENDER, y=PAID)) + geom_boxplot()
+
+# C
+AutoClaims %>% group_by(GENDER) %>% 
+  summarise(mean=mean(PAID), n=n(), new_var = sum(PAID > 10000)/n)
+```
+
+
+### Both of the following displays help us determine which state has the most insurance claims in our sample.  What is one advantage of each display?
+
+```{r}
+# A
+AutoClaims %>% ggplot(aes(x=STATE)) + geom_bar() + coord_flip() 
+
+# B
+AutoClaims %>% group_by(STATE) %>% summarise(n=n())
+```
+
+### Do you like these better?
+
+```{r}
+# A
+AutoClaims %>% ggplot(aes(x=reorder(STATE, STATE, function(x){length(x)}))) + geom_bar() + coord_flip() 
+# https://stackoverflow.com/questions/5208679/order-bars-in-ggplot2-bar-graph
+
+# B
+AutoClaims %>% group_by(STATE) %>% summarise(n=n()) %>% 
+  arrange(desc(n))
+```
+
+
+### Which of the following displays is most useful to explore whether there is an association between a driver's age and the amount of their insurance claim?
+
+```{r}
+# A
+AutoClaims %>% ggplot(aes(x=AGE, y=PAID)) + geom_point(alpha=0.2)
+
+# B
+AutoClaims %>% group_by(AGE) %>% 
+  summarise(mean=mean(PAID), med=median(PAID), n=n())
+
+# C
+AutoClaims %>% group_by(AGE) %>% 
+  summarise(mean=mean(PAID), med=median(PAID), n=n()) %>% 
+  ggplot(aes(x=AGE, y=mean)) + geom_point()
+
+# D
+AutoClaims %>% group_by(AGE) %>% 
+  summarise(mean=mean(PAID), med=median(PAID), n=n()) %>% 
+  ggplot(aes(x=AGE, y=mean, label=paste("n=",n,sep=""))) + geom_point() + 
+  geom_text(vjust="bottom", hjust="left") 
+# https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/paste
+# https://ggplot2.tidyverse.org/reference/geom_text.html
+```
